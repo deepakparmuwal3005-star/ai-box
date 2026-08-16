@@ -1,50 +1,54 @@
-import streamlit as st
 import google.generativeai as genai
+import streamlit as st
 
-# Page Setup
-st.set_page_config(page_title="AI E-commerce Assistant", page_icon="🛍️", layout="centered")
+st.title("AI Product Description Generator 🚀")
 
-st.title("🛍️ AI Product Description & SEO Generator")
-st.markdown("Ek click mein apne product ke liye professional description aur SEO tags taiyar karein!")
+# Sidebar for API Key
+api_key = st.sidebar.text_input(
+    "Apni Gemini API Key yahan dalein", type="password"
+)
 
-# Sidebar API Key Input
-st.sidebar.header("Configuration")
-api_key = st.sidebar.text_input("Apni Gemini API Key yahan dalein", type="password")
+if api_key:
+  genai.configure(api_key=api_key)
 
-if not api_key:
-    st.warning("⚠️ Kripya pehle sidebar mein apni Gemini API Key darj karein.")
+  # User inputs
+  product_name = st.text_input("Product ka Naam (e.g., Gaming Mouse)")
+  product_features = st.text_area(
+      "Features (e.g., RGB light, 5000 DPI, Bluetooth)"
+  )
+  tone = st.selectbox(
+      "Tone chunein", ["Professional", "Casual", "Excited", "Persuasive"]
+  )
+
+  if st.button("Generate Content 🚀"):
+    if product_name and product_features:
+      try:
+        # Automatically find a working model
+        working_model = "gemini-1.5-flash"
+        for m in genai.list_models():
+          if "generateContent" in m.supported_generation_methods:
+            if "flash" in m.name or "pro" in m.name:
+              working_model = m.name
+              break
+
+        model = genai.GenerativeModel(working_model)
+
+        prompt = (
+            f"Write a {tone} product description for {product_name} with these"
+            f" features: {product_features}"
+        )
+
+        with st.spinner("Generating..."):
+          response = model.generate_content(prompt)
+          st.success("Yeh raha aapka description:")
+          st.write(response.text)
+
+      except Exception as e:
+        st.error(f"Error aaya: {e}")
+    else:
+      st.warning("Kripya sabhi fields bharein!")
 else:
-    product_name = st.text_input("Product ka Naam (e.g., Wireless Gaming Mouse)")
-    product_features = st.text_area("Product ke Features (e.g., RGB light, 5000 DPI, Bluetooth)")
-    tone = st.selectbox("Tone chunein", ["Professional", "Exciting & Catchy", "Minimalist"])
-
-    if st.button("Generate Content 🚀"):
-        if product_name and product_features:
-            with st.spinner("AI content likh raha hai..."):
-                try:
-                    # Configure Gemini
-                    genai.configure(api_key=api_key)
-                    model = genai.GenerativeModel('gemini-2.0-flash')
-                    prompt = f"""
-                    Aap ek expert E-commerce Copywriter aur SEO specialist hain.
-                    Product Name: {product_name}
-                    Key Features: {product_features}
-                    Tone: {tone}
-
-                    Format required:
-                    1. Catchy Product Description
-                    2. 5 Bullet Points (Key highlights)
-                    3. SEO Meta Title aur Meta Description
-                    4. 5 High-ranking Keywords
-                    """
-
-                    response = model.generate_content(prompt)
-
-                    st.success("✨ Content taiyar hai!")
-                    st.markdown("---")
-                    st.markdown(response.text)
-
-                except Exception as e:
-                    st.error(f"Error aaya: {e}")
-        else:
-            st.warning("Kripya dono boxes (Name aur Features) bharein.")
+  st.info(
+      "Kripya pehle sidebar mein apni Gemini API Key enter karein (Yeh secure"
+      " hai)."
+  )
