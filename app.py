@@ -24,7 +24,7 @@ else:
                 try:
                     # Configure Gemini
                     genai.configure(api_key=api_key)
-                    model = genai.GenerativeModel('gemini-1.5-pro')
+                    model = genai.GenerativeModel('gemini-2.0-flash')
                     prompt = f"""
                     Aap ek expert E-commerce Copywriter aur SEO specialist hain.
                     Product Name: {product_name}
